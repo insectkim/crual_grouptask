@@ -1,5 +1,15 @@
 import tkinter as tk
 from tkinter import ttk #tkinter 모듈 중 ttk 모듈도 추가로 불러옴
+import subprocess
+
+def play_music():
+    try:
+        # client_act.py 파일을 실행합니다.
+        subprocess.run(["python", "client_act.py"], check=True)
+    except subprocess.CalledProcessError as e:
+        print(f"Error occurred: {e}")
+    except Exception as e:
+        print(f"An unexpected error occurred: {e}")
 
 # 메인 윈도우 생성
 root = tk.Tk()
@@ -93,7 +103,8 @@ add_entry()
 # 시뮬레이션 탭 내용
 ttk.Button(tab3, text="창문 열기").grid(column=0, row=0, padx=10, pady=10)
 ttk.Button(tab3, text="창문 닫기").grid(column=0, row=1, padx=10, pady=10)
-ttk.Button(tab3, text="노래 재생").grid(column=0, row=2, padx=10, pady=10)
+ttk.Button(tab3, text="노래 재생", command=play_music).grid(column=0, row=2, padx=10, pady=10)
+
 # 설정관리 탭 내용
 ttk.Label(tab4, text="기상 플래그").grid(column=0, row=0, padx=10, pady=10)
 ttk.Label(tab4, text="먼지 플래그").grid(column=0, row=1, padx=10, pady=10)
