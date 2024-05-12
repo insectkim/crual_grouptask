@@ -1,0 +1,11 @@
+Date: 20240512, Time: 2230, Category: PTY, Value: 0
+
+Date: 20240512, Time: 2300, Category: PTY, Value: 0
+Date: 20240512, Time: 2300, Category: PTY, Value: 0
+Date: 20240512, Time: 2300, Category: PTY, Value: 0
+Date: 20240513, Time: 0000, Category: PTY, Value: 0
+Date: 20240513, Time: 0100, Category: PTY, Value: 0
+Date: 20240513, Time: 0200, Category: PTY, Value: 0
+Date: 20240513, Time: 0300, Category: PTY, Value: 0
+Date: 20240513, Time: 0400, Category: PTY, Value: 0
+Base Date: 20240512, Base Time: 2200, Forecast Date: 20240512, Forecast Time: 2300, Category: PTY, Value: 0
