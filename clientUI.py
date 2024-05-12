@@ -17,7 +17,7 @@ tab4 = ttk.Frame(tabControl)
 # 탭 추가
 tabControl.add(tab1, text='상태정보')
 tabControl.add(tab2, text='알람관리')
-tabControl.add(tab3, text='시뮬레이션')
+tabControl.add(tab3, text='수동실행')
 tabControl.add(tab4, text='설정관리')
 tabControl.pack(expand=1, fill="both")
 
@@ -91,12 +91,12 @@ add_button.pack(fill='x', padx=5, pady=5)
 add_entry()
 
 # 시뮬레이션 탭 내용
-ttk.Button(tab3, text="시뮬레이션 시작").grid(column=0, row=0, padx=10, pady=10)
-ttk.Button(tab3, text="시뮬레이션 중단").grid(column=0, row=1, padx=10, pady=10)
-
+ttk.Button(tab3, text="창문 열기").grid(column=0, row=0, padx=10, pady=10)
+ttk.Button(tab3, text="창문 닫기").grid(column=0, row=1, padx=10, pady=10)
+ttk.Button(tab3, text="노래 재생").grid(column=0, row=2, padx=10, pady=10)
 # 설정관리 탭 내용
-ttk.Label(tab4, text="기술관리").grid(column=0, row=0, padx=10, pady=10)
-ttk.Label(tab4, text="모델 관리").grid(column=0, row=1, padx=10, pady=10)
-
+ttk.Label(tab4, text="기상 플래그").grid(column=0, row=0, padx=10, pady=10)
+ttk.Label(tab4, text="먼지 플래그").grid(column=0, row=1, padx=10, pady=10)
+ttk.Label(tab4, text="모터 위치 : ").grid(column=0, row=2, padx=10, pady=10)
 # 메인 루프
 root.mainloop()
