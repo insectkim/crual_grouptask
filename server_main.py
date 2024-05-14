@@ -1,14 +1,21 @@
-from flask import Flask, jsonify
-import subprocess
+from flask import Flask, request, jsonify
+import crontab
 
 app = Flask(__name__)
 
-@app.route('/crontab_list')
+@app.route('/crontab_list', methods=['GET'])
 def crontab_list():
-    result = subprocess.run(['crontab', '-l'], stdout=subprocess.PIPE, text=True)
-    lines = result.stdout.strip().split('\n')
-    cron_jobs = [line.split('#')[0].strip() for line in lines if '#' in line and line.split('#')[0].strip() != '']
+    cron_jobs = crontab.get_crontab_list()
     return jsonify(cron_jobs)
+
+@app.route('/update_crontab', methods=['POST'])
+def update_crontab():
+    data = request.json
+    success = crontab.update_crontab(data)
+    if success:
+        return jsonify({'status': 'success'})
+    else:
+        return jsonify({'status': 'fail'}), 500
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)
