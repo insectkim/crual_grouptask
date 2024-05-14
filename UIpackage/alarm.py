@@ -36,12 +36,13 @@ def add_entry(entries_frame, entries_list, job=None):
     checkboxes_frame = ttk.Frame(days_frame)
     checkboxes_frame.pack(side='top', fill='x')
 
+    checkboxes = {}
     for day in days:
-        ttk.Label(labels_frame, text=day).pack(side='left', padx=4)
-        ttk.Checkbutton(checkboxes_frame, variable=day_vars[day], onvalue=True, offvalue=False).pack(side='left', padx=1)
+        checkboxes[day] = tk.Checkbutton(checkboxes_frame, text=day, variable=day_vars[day], onvalue=True, offvalue=False)
+        checkboxes[day].pack(side='left', padx=1)
 
     window_open_var = tk.BooleanVar(value=False)
-    ttk.Checkbutton(frame, text="창문 열기", variable=window_open_var, onvalue=True, offvalue=False).pack(side='left', padx=10)
+    tk.Checkbutton(frame, text="창문 열기", variable=window_open_var, onvalue=True, offvalue=False).pack(side='left', padx=10)
 
     remove_button = ttk.Button(frame, text="삭제", command=lambda: remove_entry(frame, entries_list))
     remove_button.pack(side='right')
@@ -49,12 +50,32 @@ def add_entry(entries_frame, entries_list, job=None):
     entries_list.append(frame)
 
     if job:
-        # job 데이터를 사용하여 입력 필드를 채웁니다
         parts = job.split()
         minute, hour, day_of_month, month, day_of_week = parts[:5]
         hour_entry.insert(0, hour)
         minute_entry.insert(0, minute)
-        # 체크박스 설정은 추가 작업이 필요할 수 있습니다
+        set_day_checkboxes(day_of_week, day_vars, checkboxes)
+
+def set_day_checkboxes(day_of_week_str, day_vars, checkboxes):
+    days_map = {
+        '0': '일', '1': '월', '2': '화', '3': '수', '4': '목', '5': '금', '6': '토',
+        'sun': '일', 'mon': '월', 'tue': '화', 'wed': '수', 'thu': '목', 'fri': '금', 'sat': '토'
+    }
+
+    # crontab에서 *는 매일을 의미합니다
+    if day_of_week_str == '*':
+        for var in day_vars.values():
+            var.set(True)
+    else:
+        # 요일 문자열을 쉼표로 분리하여 각각의 요일을 설정합니다
+        days = day_of_week_str.split(',')
+        for day in days:
+            if day in days_map:
+                day_vars[days_map[day]].set(True)
+    
+    # 체크박스 UI 업데이트
+    for day, var in day_vars.items():
+        checkboxes[day].update()
 
 def remove_entry(frame, entries_list):
     frame.pack_forget()
