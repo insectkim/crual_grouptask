@@ -1,28 +1,6 @@
-import tkinter as tk
+from ConPackage.connect import send_request
 from tkinter import ttk
-import requests
-
-def fetch_crontab_list():
-    try:
-        response = requests.get('http://192.168.200.113:5000/crontab_list')
-        if response.status_code == 200:
-            return response.json()
-        else:
-            return []
-    except Exception as e:
-        print("Failed to fetch crontab list:", e)
-        return []
-
-def save_crontab_list(crontab_data):
-    try:
-        response = requests.post('http://192.168.200.113:5000/update_crontab', json=crontab_data)
-        if response.status_code == 200:
-            return response.json()
-        else:
-            return {"status": "fail"}
-    except Exception as e:
-        print("Failed to save crontab list:", e)
-        return {"status": "fail"}
+import tkinter as tk
 
 def add_entry(entries_frame, entries_list, job=None):
     frame = ttk.Frame(entries_frame)
@@ -110,7 +88,7 @@ def gather_crontab_data(entries_list, command):
 
 def save_crontab(entries_list, command):
     crontab_data = gather_crontab_data(entries_list, command)
-    response = save_crontab_list(crontab_data)
+    response = send_request('update_crontab', method='POST', data=crontab_data)
     if response['status'] == 'success':
         print("Crontab successfully updated.")
     else:
@@ -124,7 +102,7 @@ def initialize_alarm_tab(tab):
     entries_frame.pack(fill='x', padx=5, pady=5)
     entries_list = []
 
-    crontab_list = fetch_crontab_list()
+    crontab_list = send_request('crontab_list')
     if crontab_list:
         first_cron_job = crontab_list[0]
         command = first_cron_job.split(' ', 5)[-1]
@@ -133,7 +111,7 @@ def initialize_alarm_tab(tab):
     else:
         command = "명령어 없음"
 
-    add_button = ttk.Button(review_frame, text="추가", command=lambda: add_entry(entries_frame, entries_list))
+    add_button = ttk.Button(review_frame, text="추가", command=lambda: add_entry(entries_frame, entries_list, command))
     add_button.pack(fill='x', padx=5, pady=5)
 
     save_button = ttk.Button(tab, text="저장", command=lambda: save_crontab(entries_list, command))

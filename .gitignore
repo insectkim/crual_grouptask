@@ -4,3 +4,9 @@ client/UIPackage/__pycache__/alarm.cpython-311.pyc
 client/UIPackage/__pycache__/config.cpython-311.pyc
 client/UIPackage/__pycache__/status.cpython-311.pyc
 client/UIPackage/__pycache__/test.cpython-311.pyc
+client/ConPackage/__pycache__/__init__.cpython-311.pyc
+client/ConPackage/__pycache__/connect.cpython-311.pyc
+client/UIPackage/__pycache__/alarm.cpython-311.pyc
+client/UIPackage/__pycache__/connect.cpython-311.pyc
+client/UIPackage/__pycache__/test.cpython-311.pyc
+client/UIPackage/__pycache__/*
