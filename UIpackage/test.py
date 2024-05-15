@@ -1,21 +1,32 @@
 import tkinter as tk
 from tkinter import ttk
-import pygame
-from threading import Thread
+import requests
 import time
+from threading import Thread
+
+is_playing = False
+elapsed_time = 0
 
 def play_music(current_time_label, total_time_label, root):
-    pygame.mixer.init()
-    pygame.mixer.music.load(r"C:\Users\pofwe\Music\alarm.mp3")
-    pygame.mixer.music.play()
-    
     global is_playing, elapsed_time
     is_playing = True
     elapsed_time = 0
 
+    # 서버로 재생 명령 전송
+    try:
+        response = requests.post('http://192.168.200.113:5000/play_music')
+        if response.status_code != 200:
+            print("Failed to start music playback on server.")
+            is_playing = False
+            return
+    except Exception as e:
+        print(f"Error: {e}")
+        is_playing = False
+        return
+
     def track_playback():
         global is_playing, elapsed_time
-        while pygame.mixer.music.get_busy() and is_playing:
+        while is_playing:
             time.sleep(1)
             elapsed_time += 1
             root.after(0, lambda: current_time_label.config(text=time.strftime('%M:%S', time.gmtime(elapsed_time))))
@@ -25,9 +36,16 @@ def play_music(current_time_label, total_time_label, root):
 
 def stop_music(current_time_label, total_time_label):
     global is_playing
-    if pygame.mixer.music.get_busy():
-        pygame.mixer.music.stop()
     is_playing = False
+
+    # 서버로 정지 명령 전송
+    try:
+        response = requests.post('http://192.168.200.113:5000/stop_music')
+        if response.status_code != 200:
+            print("Failed to stop music playback on server.")
+    except Exception as e:
+        print(f"Error: {e}")
+
     current_time_label.config(text="00:00")
     total_time_label.config(text="00:00")
 
