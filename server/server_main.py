@@ -1,5 +1,5 @@
 from flask import Flask, request, jsonify
-import crontab
+from crontab import CrontabManager
 import os
 import subprocess
 
@@ -9,26 +9,26 @@ app = Flask(__name__)
 def crontab_list():
     """
     GET 엔드포인트: 현재 크론탭 리스트를 가져옵니다.
-    
+
     Returns:
         json: 현재 사용자 크론탭 리스트
     """
-    cron_jobs = crontab.get_crontab_list()
+    cron_jobs = CrontabManager.get_crontab_list()
     return jsonify(cron_jobs)
 
 @app.route('/update_crontab', methods=['POST'])
 def update_crontab():
     """
     POST 엔드포인트: 크론탭 리스트를 업데이트합니다.
-    
+
     Parameters:
         data (list): 새로운 크론탭 리스트
-        
+
     Returns:
         json: 업데이트 결과
     """
     data = request.json
-    success = crontab.update_crontab(data)
+    success = CrontabManager.update_crontab(data)
     if success:
         return jsonify({'status': 'success'})
     else:
@@ -38,10 +38,10 @@ def update_crontab():
 def update_weather():
     """
     GET 엔드포인트: 날씨 정보를 업데이트합니다.
-    
+
     Parameters:
         value (int): 날씨 값 (예: 0 또는 1)
-        
+
     Returns:
         json: 업데이트 결과
     """
