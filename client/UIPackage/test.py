@@ -8,7 +8,7 @@ class MusicPlayer:
     @staticmethod
     def play_music(current_time_label, total_time_label, root):
         """
-        음악을 재생하고 재생 시간을 업데이트합니다.
+        라즈베리파이에 음악을 재생하도록 하고, 재생 시간을 업데이트합니다.
 
         Parameters:
             current_time_label (Label): 현재 재생 시간 라벨
@@ -34,7 +34,7 @@ class MusicPlayer:
     @staticmethod
     def stop_music(current_time_label, total_time_label):
         """
-        음악 재생을 중지하고 시간을 초기화합니다.
+        라즈베리파이가 음악 재생을 중지하도록 하고 시간을 초기화합니다.
 
         Parameters:
             current_time_label (Label): 현재 재생 시간 라벨
