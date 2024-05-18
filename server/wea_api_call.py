@@ -3,8 +3,19 @@ import json
 from datetime import datetime, timedelta
 
 def call_weather_api():
+    """
+    기상청 API를 호출하여 날씨 예보 데이터를 가져옵니다.
+    
+    현재 시간 기준으로 최근 30분 단위의 예보 데이터를 요청합니다.
+    PTY(강수 형태) 데이터를 추출하여 가장 가까운 예보 시간을 찾고,
+    이를 weather_data.txt 파일에 추가로 저장합니다.
+    
+    Returns:
+        int: 가장 가까운 예보 시간의 PTY 값 (강수 형태) 또는 1 (0이 아닌 경우)
+    """
     now = datetime.now()
 
+    # 현재 시간을 기준으로 base_time 설정
     if now.minute < 30:
         base_time = now.replace(minute=0, second=0, microsecond=0) - timedelta(hours=1)
     else:
@@ -13,6 +24,7 @@ def call_weather_api():
     base_date = base_time.strftime("%Y%m%d")
     base_time = base_time.strftime("%H%M")
 
+    # 기상청 API 요청 URL과 파라미터 설정
     url = 'http://apis.data.go.kr/1360000/VilageFcstInfoService_2.0/getUltraSrtFcst'
     params = {
         'serviceKey': 'ShoyixM1ptYZBhBnejvluAoQqSl4MqWlEzNVPtPP+TbRZoI8gQI94ni5RSqKOUIGZjiXvzSyTiI1/t3Zk2aFmQ==',
@@ -25,30 +37,43 @@ def call_weather_api():
         'ny': '75'
     }
 
+    # API 요청 및 응답 처리
     response = requests.get(url, params=params)
     data = response.json()
 
     if response.status_code == 200:
         items = data['response']['body']['items']['item']
         
-        # Extract PTY items
+        # PTY 항목 추출
         pty_items = [item for item in items if item['category'] == 'PTY']
         if pty_items:
+            # 가장 가까운 예보 시간의 PTY 데이터 찾기
             nearest_pty = min(pty_items, key=lambda x: (x['fcstDate'], x['fcstTime']))
             with open("weather_data.txt", "a") as file:  
                 line = f"Base Date: {base_date}, Base Time: {base_time}, Forecast Date: {nearest_pty['fcstDate']}, Forecast Time: {nearest_pty['fcstTime']}, Category: {nearest_pty['category']}, Value: {nearest_pty['fcstValue']}\n"
                 file.write(line)
             print("Nearest PTY data has been appended to the file.")
-            return nearest_pty['fcstValue']
+            
+            # PTY 값이 0이 아닌 경우 1로 설정
+            if nearest_pty['fcstValue'] != '0':
+                return 1
+            else:
+                return 0
         else:
-            print("No PTY data found.")
-            return None
+            print("No PTY data found, defaulting to 1.")
+            return 1
     else:
         print("Failed to retrieve data. Status Code:", response.status_code)
-        return None
+        return 1
 
 def send_value_to_server(value):
-    server_url = f"http://localhost:5000/update_weather?value={value}"  # Update with the actual server URL and endpoint
+    """
+    PTY 카테고리 값을 서버에 전송합니다.
+    
+    Parameters:
+        value (int): 서버에 전송할 값 (예: PTY 값)
+    """
+    server_url = f"http://localhost:5000/update_weather?value={value}"  # 실제 서버 URL과 엔드포인트로 업데이트
     response = requests.get(server_url)
     
     if response.status_code == 200:
@@ -56,11 +81,7 @@ def send_value_to_server(value):
     else:
         print("Failed to send value")
 
-# This block ensures that the following code only runs if the script is executed directly
+# 이 블록은 스크립트가 직접 실행될 때만 코드를 실행합니다.
 if __name__ == "__main__":
     value = call_weather_api()
-    if value is not None:
-        send_value_to_server(value)
-    else:
-        # Even if no value is obtained, send a default flag (e.g., 0) to the server
-        send_value_to_server(0)
+    send_value_to_server(value)

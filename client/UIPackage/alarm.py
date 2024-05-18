@@ -135,7 +135,7 @@ def save_crontab(entries_list, command):
 
 def initialize_alarm_tab(tab):
     """
-    알람관리 탭을 초기화합니다.
+    알람관리 탭을 초기화하고 UI를 구성합니다.
 
     Parameters:
         tab (Frame): 알람관리 탭의 프레임

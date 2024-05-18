@@ -63,7 +63,7 @@ def stop_music_handler(current_time_label, total_time_label):
 
 def initialize_test_tab(tab):
     """
-    수동실행 탭을 초기화합니다.
+    수동실행 탭을 초기화하고 UI를 구성합니다.
 
     Parameters:
         tab (Frame): 수동실행 탭의 프레임
