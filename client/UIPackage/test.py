@@ -4,10 +4,19 @@ import tkinter as tk
 import time
 from threading import Thread
 
+# 전역 변수 초기화
 is_playing = False
 elapsed_time = 0
 
 def play_music_handler(current_time_label, total_time_label, root):
+    """
+    서버에 음악 재생 명령을 전송하고 재생 시간을 업데이트합니다.
+
+    Parameters:
+        current_time_label (Label): 현재 재생 시간을 표시하는 라벨
+        total_time_label (Label): 총 재생 시간을 표시하는 라벨
+        root (Tk): 메인 윈도우 객체
+    """
     global is_playing, elapsed_time
     is_playing = True
     elapsed_time = 0
@@ -20,16 +29,27 @@ def play_music_handler(current_time_label, total_time_label, root):
         return
 
     def track_playback():
+        """
+        음악 재생 시간을 추적하여 UI를 업데이트합니다.
+        """
         global is_playing, elapsed_time
         while is_playing:
             time.sleep(1)
             elapsed_time += 1
             root.after(0, lambda: current_time_label.config(text=time.strftime('%M:%S', time.gmtime(elapsed_time))))
 
+    # 백그라운드에서 재생 시간 추적
     Thread(target=track_playback).start()
     total_time_label.config(text="03:30")  # 예시로 고정된 노래 길이
 
 def stop_music_handler(current_time_label, total_time_label):
+    """
+    서버에 음악 중지 명령을 전송하고 UI를 업데이트합니다.
+
+    Parameters:
+        current_time_label (Label): 현재 재생 시간을 표시하는 라벨
+        total_time_label (Label): 총 재생 시간을 표시하는 라벨
+    """
     global is_playing
     is_playing = False
 
@@ -42,6 +62,12 @@ def stop_music_handler(current_time_label, total_time_label):
     total_time_label.config(text="00:00")
 
 def initialize_test_tab(tab):
+    """
+    수동실행 탭을 초기화합니다.
+
+    Parameters:
+        tab (Frame): 수동실행 탭의 프레임
+    """
     current_time_label = ttk.Label(tab, text="00:00")
     current_time_label.grid(column=2, row=2, padx=10, pady=5)
     total_time_label = ttk.Label(tab, text="00:00")

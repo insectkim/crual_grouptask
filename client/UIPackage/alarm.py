@@ -3,6 +3,14 @@ from tkinter import ttk
 import tkinter as tk
 
 def add_entry(entries_frame, entries_list, job=None):
+    """
+    알람 항목을 추가합니다.
+
+    Parameters:
+        entries_frame (Frame): 알람 항목을 추가할 프레임
+        entries_list (List): 알람 항목 리스트
+        job (str, optional): 기존 크론잡 문자열 (예: '0 6 * * 1-5 /path/to/command')
+    """
     frame = ttk.Frame(entries_frame)
     frame.pack(fill='x', padx=5, pady=5)
 
@@ -46,6 +54,13 @@ def add_entry(entries_frame, entries_list, job=None):
         set_day_checkboxes(day_of_week, day_vars)
 
 def set_day_checkboxes(day_of_week_str, day_vars):
+    """
+    요일 체크박스를 설정합니다.
+
+    Parameters:
+        day_of_week_str (str): 크론탭 형식의 요일 문자열 (예: '1-5')
+        day_vars (dict): 요일 체크박스 변수 딕셔너리
+    """
     days_map = {
         '0': '일', '1': '월', '2': '화', '3': '수', '4': '목', '5': '금', '6': '토',
         'sun': '일', 'mon': '월', 'tue': '화', 'wed': '수', 'thu': '목', 'fri': '금', 'sat': '토'
@@ -61,6 +76,13 @@ def set_day_checkboxes(day_of_week_str, day_vars):
                 day_vars[days_map[day]].set(True)
 
 def remove_entry(frame, entries_list):
+    """
+    알람 항목을 삭제합니다.
+
+    Parameters:
+        frame (Frame): 삭제할 알람 항목의 프레임
+        entries_list (List): 알람 항목 리스트
+    """
     for entry in entries_list:
         if entry[0] == frame:
             entries_list.remove(entry)
@@ -69,6 +91,16 @@ def remove_entry(frame, entries_list):
     frame.destroy()
 
 def gather_crontab_data(entries_list, command):
+    """
+    크론탭 데이터를 수집합니다.
+
+    Parameters:
+        entries_list (List): 알람 항목 리스트
+        command (str): 크론탭 명령어
+
+    Returns:
+        List[str]: 크론탭 형식의 문자열 리스트
+    """
     day_map_reverse = {
         '일': '0', '월': '1', '화': '2', '수': '3', '목': '4', '금': '5', '토': '6'
     }
@@ -87,6 +119,13 @@ def gather_crontab_data(entries_list, command):
     return crontab_data
 
 def save_crontab(entries_list, command):
+    """
+    크론탭 데이터를 서버에 저장합니다.
+
+    Parameters:
+        entries_list (List): 알람 항목 리스트
+        command (str): 크론탭 명령어
+    """
     crontab_data = gather_crontab_data(entries_list, command)
     response = send_request('update_crontab', method='POST', data=crontab_data)
     if response['status'] == 'success':
@@ -95,6 +134,12 @@ def save_crontab(entries_list, command):
         print("Failed to update crontab.")
 
 def initialize_alarm_tab(tab):
+    """
+    알람관리 탭을 초기화합니다.
+
+    Parameters:
+        tab (Frame): 알람관리 탭의 프레임
+    """
     review_frame = ttk.LabelFrame(tab, text="알람 리스트")
     review_frame.grid(column=0, row=0, padx=10, pady=10, sticky="ew")
 

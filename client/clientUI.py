@@ -24,9 +24,11 @@ tabControl.add(tab3, text='수동실행')
 tabControl.add(tab4, text='설정관리')
 tabControl.pack(expand=1, fill="both")
 
+# 각 탭 초기화
 initialize_status_tab(tab1)
 initialize_alarm_tab(tab2)
 initialize_test_tab(tab3)
 initialize_config_tab(tab4)
 
+# 메인 루프 시작
 root.mainloop()
