@@ -11,7 +11,10 @@ class AlarmManager:
         Returns:
             list: 크론탭 항목 리스트
         """
-        return send_request('crontab_list')
+        response = send_request('crontab_list')
+        if isinstance(response, list):
+            return response
+        return []
 
     @staticmethod
     def save_crontab_list(crontab_data):
