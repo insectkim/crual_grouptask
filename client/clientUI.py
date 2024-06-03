@@ -1,6 +1,6 @@
 import tkinter as tk
 from tkinter import ttk
-from UIPackage.alarm import initialize_alarm_tab
+from UIPackage.alarm import initialize_alarm_tab, fetch_alarms
 from UIPackage.test import initialize_test_tab
 from UIPackage.status import initialize_status_tab
 from UIPackage.config import initialize_config_tab
@@ -17,18 +17,18 @@ def show_main_ui():
     # 서버 변수 초기화
     initialize_server_variables(root)
 
-    tabControl = ttk.Notebook(root)
+    tab_control = ttk.Notebook(root)
 
-    tab1 = ttk.Frame(tabControl)
-    tab2 = ttk.Frame(tabControl)
-    tab3 = ttk.Frame(tabControl)
-    tab4 = ttk.Frame(tabControl)
+    tab1 = ttk.Frame(tab_control)
+    tab2 = ttk.Frame(tab_control)
+    tab3 = ttk.Frame(tab_control)
+    tab4 = ttk.Frame(tab_control)
 
-    tabControl.add(tab1, text='상태정보')
-    tabControl.add(tab2, text='알람관리')
-    tabControl.add(tab3, text='수동실행')
-    tabControl.add(tab4, text='설정관리')
-    tabControl.pack(expand=1, fill="both")
+    tab_control.add(tab1, text='상태정보')
+    tab_control.add(tab2, text='알람관리')
+    tab_control.add(tab3, text='수동실행')
+    tab_control.add(tab4, text='설정관리')
+    tab_control.pack(expand=1, fill="both")
 
     # 상태 탭 초기화
     initialize_status_tab(tab1)
@@ -41,6 +41,9 @@ def show_main_ui():
 
     # 설정관리 탭 초기화
     initialize_config_tab(tab4)
+
+    # 알람 리스트를 서버에서 받아옴
+    fetch_alarms(tab2)
 
     root.mainloop()
 
