@@ -12,3 +12,5 @@ client/UIPackage/__pycache__/test.cpython-311.pyc
 client/UIPackage/__pycache__/*
 client.zip
 crual_grouptask.zip
+client/UIPackage/__pycache__/*.pyc
+client/UIPackage/__pycache__/*.pyc

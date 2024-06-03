@@ -76,10 +76,11 @@ class AlarmManager:
 
         if job:
             parts = job.split()
-            minute, hour, day_of_month, month, day_of_week = parts[:5]
-            hour_entry.insert(0, hour)
-            minute_entry.insert(0, minute)
-            AlarmManager.set_day_checkboxes(day_of_week, day_vars)
+            if len(parts) >= 5:
+                minute, hour, day_of_month, month, day_of_week = parts[:5]
+                hour_entry.insert(0, hour)
+                minute_entry.insert(0, minute)
+                AlarmManager.set_day_checkboxes(day_of_week, day_vars)
 
     @staticmethod
     def set_day_checkboxes(day_of_week_str, day_vars):
@@ -176,17 +177,19 @@ def initialize_alarm_tab(tab):
     entries_frame.pack(fill='x', padx=5, pady=5)
     entries_list = []
 
-    crontab_list = AlarmManager.fetch_crontab_list()
-    if crontab_list:
-        first_cron_job = crontab_list[0]
-        command = first_cron_job.split(' ', 5)[-1]
-        for cron_job in crontab_list:
-            AlarmManager.add_entry(entries_frame, entries_list, cron_job)
-    else:
-        command = "명령어 없음"
-
-    add_button = ttk.Button(review_frame, text="추가", command=lambda: AlarmManager.add_entry(entries_frame, entries_list, command))
+    add_button = ttk.Button(review_frame, text="추가", command=lambda: AlarmManager.add_entry(entries_frame, entries_list))
     add_button.pack(fill='x', padx=5, pady=5)
 
-    save_button = ttk.Button(tab, text="저장", command=lambda: AlarmManager.save_crontab(entries_list, command))
+    save_button = ttk.Button(tab, text="저장", command=lambda: AlarmManager.save_crontab(entries_list, "명령어 없음"))
     save_button.grid(column=0, row=1, padx=10, pady=10)
+
+    def fetch_alarms():
+        crontab_list = AlarmManager.fetch_crontab_list()
+        if crontab_list:
+            first_cron_job = crontab_list[0]
+            command = first_cron_job.split(' ', 5)[-1]
+            for cron_job in crontab_list:
+                AlarmManager.add_entry(entries_frame, entries_list, cron_job)
+            save_button.configure(command=lambda: AlarmManager.save_crontab(entries_list, command))
+
+    tab.master.master.after(1000, fetch_alarms)  # 서버 접속 성공 후 알람 리스트를 불러옵니다.
