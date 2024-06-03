@@ -1,23 +1,24 @@
 import tkinter as tk
 from tkinter import ttk
-from ConPackage.connect import send_request
+from ConPackage.connect import ServerConnection
 
 class AlarmManager:
-    @staticmethod
-    def fetch_crontab_list():
+    def __init__(self, server_connection):
+        self.server_connection = server_connection
+
+    def fetch_crontab_list(self):
         """
         서버에서 크론탭 리스트를 가져옵니다.
 
         Returns:
             list: 크론탭 항목 리스트
         """
-        response = send_request('crontab_list')
+        response = self.server_connection.send_request('crontab_list')
         if isinstance(response, list):
             return response
         return []
 
-    @staticmethod
-    def save_crontab_list(crontab_data):
+    def save_crontab_list(self, crontab_data):
         """
         서버에 크론탭 리스트를 저장합니다.
 
@@ -27,10 +28,9 @@ class AlarmManager:
         Returns:
             dict: 서버 응답 데이터
         """
-        return send_request('update_crontab', method='POST', data=crontab_data)
+        return self.server_connection.send_request('update_crontab', method='POST', data=crontab_data)
 
-    @staticmethod
-    def add_entry(entries_frame, entries_list, job=None):
+    def add_entry(self, entries_frame, entries_list, job=None):
         """
         알람 항목을 추가합니다.
 
@@ -69,7 +69,7 @@ class AlarmManager:
         window_open_var = tk.BooleanVar(value=False)
         tk.Checkbutton(frame, text="창문 열기", variable=window_open_var, onvalue=True, offvalue=False).pack(side='left', padx=10)
 
-        remove_button = ttk.Button(frame, text="삭제", command=lambda: AlarmManager.remove_entry(frame, entries_list))
+        remove_button = ttk.Button(frame, text="삭제", command=lambda: self.remove_entry(frame, entries_list))
         remove_button.pack(side='right')
 
         entries_list.append((frame, hour_entry, minute_entry, day_vars, window_open_var, job))
@@ -80,10 +80,9 @@ class AlarmManager:
                 minute, hour, _day_of_month, _month, day_of_week = parts[:5]
                 hour_entry.insert(0, hour)
                 minute_entry.insert(0, minute)
-                AlarmManager.set_day_checkboxes(day_of_week, day_vars)
+                self.set_day_checkboxes(day_of_week, day_vars)
 
-    @staticmethod
-    def set_day_checkboxes(day_of_week_str, day_vars):
+    def set_day_checkboxes(self, day_of_week_str, day_vars):
         """
         요일 체크박스를 설정합니다.
 
@@ -105,8 +104,7 @@ class AlarmManager:
                 if day in days_map:
                     day_vars[days_map[day]].set(True)
 
-    @staticmethod
-    def remove_entry(_frame, entries_list):
+    def remove_entry(self, _frame, entries_list):
         """
         알람 항목을 삭제합니다.
 
@@ -118,8 +116,7 @@ class AlarmManager:
         _frame.destroy()
         entries_list.remove(_frame)
 
-    @staticmethod
-    def gather_crontab_data(entries_list, command):
+    def gather_crontab_data(self, entries_list, command):
         """
         알람 항목으로부터 크론탭 데이터를 수집합니다.
 
@@ -147,8 +144,7 @@ class AlarmManager:
             crontab_data.append(crontab_line)
         return crontab_data
 
-    @staticmethod
-    def save_crontab(entries_list, command):
+    def save_crontab(self, entries_list, command):
         """
         수집된 크론탭 데이터를 서버에 저장합니다.
 
@@ -156,8 +152,8 @@ class AlarmManager:
             entries_list (list): 알람 항목 리스트
             command (str): 실행할 명령어
         """
-        crontab_data = AlarmManager.gather_crontab_data(entries_list, command)
-        response = AlarmManager.save_crontab_list(crontab_data)
+        crontab_data = self.gather_crontab_data(entries_list, command)
+        response = self.save_crontab_list(crontab_data)
         if response['status'] == 'success':
             print("Crontab successfully updated.")
         else:
@@ -177,29 +173,33 @@ def initialize_alarm_tab(tab):
     entries_frame.pack(fill='x', padx=5, pady=5)
     entries_list = []
 
-    add_button = ttk.Button(review_frame, text="추가", command=lambda: AlarmManager.add_entry(entries_frame, entries_list))
+    server_connection = ServerConnection(tab.master.master)
+    alarm_manager = AlarmManager(server_connection)
+
+    add_button = ttk.Button(review_frame, text="추가", command=lambda: alarm_manager.add_entry(entries_frame, entries_list))
     add_button.pack(fill='x', padx=5, pady=5)
 
-    save_button = ttk.Button(tab, text="저장", command=lambda: AlarmManager.save_crontab(entries_list, "명령어 없음"))
+    save_button = ttk.Button(tab, text="저장", command=lambda: alarm_manager.save_crontab(entries_list, "명령어 없음"))
     save_button.grid(column=0, row=1, padx=10, pady=10)
 
-    tab.master.master.after(1000, lambda: fetch_alarms(tab))  # 서버 접속 성공 후 알람 리스트를 불러옵니다.
+    tab.master.master.after(1000, lambda: fetch_alarms(tab, alarm_manager))
 
-def fetch_alarms(tab):
+def fetch_alarms(tab, alarm_manager):
     """
     서버에서 알람 리스트를 받아와서 알람 탭을 초기화합니다.
 
     Parameters:
         tab (Frame): 알람관리 탭의 프레임
+        alarm_manager (AlarmManager): 알람 매니저 인스턴스
     """
     entries_frame = tab.winfo_children()[0].winfo_children()[0]  # entries_frame 가져오기
     entries_list = []
 
-    crontab_list = AlarmManager.fetch_crontab_list()
+    crontab_list = alarm_manager.fetch_crontab_list()
     if crontab_list:
         first_cron_job = crontab_list[0]
         command = first_cron_job.split(' ', 5)[-1]
         for cron_job in crontab_list:
-            AlarmManager.add_entry(entries_frame, entries_list, cron_job)
+            alarm_manager.add_entry(entries_frame, entries_list, cron_job)
         save_button = tab.winfo_children()[1]
-        save_button.configure(command=lambda: AlarmManager.save_crontab(entries_list, command))
+        save_button.configure(command=lambda: alarm_manager.save_crontab(entries_list, command))
