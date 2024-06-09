@@ -1,35 +1,42 @@
 import subprocess
 
-class CrontabManager:
-    @staticmethod
-    def get_crontab_list():
-        """
-        현재 사용자 크론탭 리스트를 가져옵니다.
-
-        Returns:
-            list: 크론탭 항목 리스트
-        """
+def get_crontab_list():
+    try:
         result = subprocess.run(['crontab', '-l'], stdout=subprocess.PIPE, text=True)
-        lines = result.stdout.strip().split('\n')
-        cron_jobs = [line.split('#')[0].strip() for line in lines if line.strip()]
-        return cron_jobs
+        crontab_list = result.stdout.splitlines()
+        # 주석 라인 제외
+        filtered_list = [line for line in crontab_list if line.strip() and not line.strip().startswith('#')]
+        return filtered_list
+    except Exception as e:
+        print(f"Failed to get crontab list: {e}")
+        return []
 
-    @staticmethod
-    def update_crontab(crontab_data):
-        """
-        새로운 크론탭 리스트로 업데이트합니다.
+def update_crontab(crontab_data):
+    try:
+        crontab_lines = []
+        for job in crontab_data:
+            # 각 job 항목을 올바른 크론탭 포맷으로 변환합니다.
+            crontab_lines.append(job.strip())  # 불필요한 공백 및 탭 문자를 제거합니다.
+        
+        # crontab_lines 리스트의 각 항목을 새 줄로 연결합니다.
+        crontab_content = "\n".join(crontab_lines) + "\n"  # 각 항목 끝에 새 줄을 추가하고, 마지막에도 새 줄을 추가
+        
+        # subprocess를 사용하여 crontab에 명령을 전달합니다.
+        process = subprocess.Popen(['crontab', '-'], stdin=subprocess.PIPE, text=True)
+        process.communicate(input=crontab_content)
+        
+        # subprocess의 실행 결과를 확인합니다.
+        if process.returncode == 0:
+            print("Crontab update successful.")
+        else:
+            print("Crontab update failed.")
+            
+        return process.returncode == 0
+    except Exception as e:
+        print(f"Failed to update crontab: {e}")
+        return False
 
-        Parameters:
-            crontab_data (list): 크론탭 형식의 문자열 리스트
-
-        Returns:
-            bool: 성공 여부
-        """
-        try:
-            new_cron = '\n'.join(crontab_data) + '\n'
-            process = subprocess.Popen(['crontab'], stdin=subprocess.PIPE)
-            process.communicate(input=new_cron.encode())
-            return process.returncode == 0
-        except Exception as e:
-            print(f"Error: {e}")
-            return False
+if __name__ == "__main__":
+    crontab_list = get_crontab_list()
+    for line in crontab_list:
+        print(line)

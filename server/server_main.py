@@ -1,97 +1,113 @@
 from flask import Flask, request, jsonify
-from crontab import CrontabManager  # 수정: CrontabManager 클래스 임포트
 import os
 import subprocess
+import sys
+import logging
+
+sys.path.append(os.path.dirname(__file__))
+import crontab
 
 app = Flask(__name__)
 
+logging.basicConfig(level=logging.INFO, format='%(asctime)s %(name)s %(message)s')
+logger = logging.getLogger(__name__)
+
 @app.route('/crontab_list', methods=['GET'])
 def crontab_list():
-    """
-    GET 엔드포인트: 현재 크론탭 리스트를 가져옵니다.
-    
-    Returns:
-        json: 현재 사용자 크론탭 리스트
-    """
-    cron_jobs = CrontabManager.get_crontab_list()  # 수정: CrontabManager 사용
-    return jsonify(cron_jobs)
+    cron_jobs = crontab.get_crontab_list()
+    logger.info(f"Returning crontab list: {cron_jobs}")
+    return jsonify(cron_jobs), 200
 
 @app.route('/update_crontab', methods=['POST'])
 def update_crontab():
-    """
-    POST 엔드포인트: 크론탭 리스트를 업데이트합니다.
-    
-    Parameters:
-        data (list): 새로운 크론탭 리스트
-        
-    Returns:
-        json: 업데이트 결과
-    """
     data = request.json
-    success = CrontabManager.update_crontab(data)  # 수정: CrontabManager 사용
-    if success:
-        return jsonify({'status': 'success'})
-    else:
-        return jsonify({'status': 'fail'}), 500
+    try:
+        crontab_data = data['crontab']
+        # 탭 문자를 줄 바꿈 문자로 변환하여 저장
+        crontab_data = [job.replace('\t', '') for job in crontab_data]
+        success = crontab.update_crontab(crontab_data)
+        if success:
+            logger.info(f"Crontab updated successfully with data: {data}")
+            return jsonify({'status': 'success'}), 200
+        else:
+            logger.error(f"Failed to update crontab with data: {data}")
+            return jsonify({'status': 'fail'}), 500
+    except Exception as e:
+        logger.error(f"Failed to update crontab: {e}")
+        return jsonify({'status': 'fail', 'message': str(e)}), 500
 
 @app.route('/play_music', methods=['GET'])
 def play_music():
-    """
-    GET 엔드포인트: 음악 재생 명령을 실행합니다.
-    
-    Returns:
-        json: 실행 결과
-    """
     try:
         command = "cvlc /home/insectkim/program/alarm.mp3 --play-and-exit"
         subprocess.Popen(command, shell=True)
+        logger.info("Playing music")
         return jsonify({'status': 'success'}), 200
     except Exception as e:
+        logger.error(f"Failed to play music: {e}")
         return jsonify({'status': 'fail', 'message': str(e)}), 500
 
 @app.route('/stop_music', methods=['GET'])
 def stop_music():
-    """
-    GET 엔드포인트: 음악 중지 명령을 실행합니다.
-    
-    Returns:
-        json: 실행 결과
-    """
     try:
         command = "pkill vlc"
         subprocess.Popen(command, shell=True)
+        logger.info("Stopping music")
         return jsonify({'status': 'success'}), 200
     except Exception as e:
+        logger.error(f"Failed to stop music: {e}")
         return jsonify({'status': 'fail', 'message': str(e)}), 500
 
 @app.route('/update_weather', methods=['GET'])
 def update_weather():
-    """
-    GET 엔드포인트: 날씨 정보를 업데이트합니다.
-    
-    Parameters:
-        value (int): 날씨 값 (예: 0 또는 1)
-        
-    Returns:
-        json: 업데이트 결과
-    """
     value = request.args.get('value', 0, type=int)
-    
-    # value를 True (1) 또는 False (0)로 분류
     wea_flag = 1 if value > 0 else 0
-    
-    # config 디렉토리와 wea_flag.dat 파일 경로 설정
     config_dir = os.path.join(os.getcwd(), 'config')
     if not os.path.exists(config_dir):
         os.makedirs(config_dir)
     config_path = os.path.join(config_dir, 'wea_flag.dat')
-    
-    # subprocess를 사용하여 명령어 실행
     command = f"echo {wea_flag} > {config_path}"
     subprocess.run(command, shell=True, check=True)
-    
+    logger.info(f"Weather updated with value: {value}")
     return jsonify({"status": "success"}), 200
 
-# 이 블록은 스크립트가 직접 실행될 때만 서버를 시작합니다.
+@app.route('/check_dust_data', methods=['GET'])
+def check_dust_data():
+    value = request.args.get('value', 0, type=int)
+    config_dir = os.path.join(os.getcwd(), 'config')
+    if not os.path.exists(config_dir):
+        os.makedirs(config_dir)
+    config_path = os.path.join(config_dir, 'dust_flag.dat')
+    command = f"echo {value} > {config_path}"
+    subprocess.run(command, shell=True, check=True)
+    logger.info(f"Dust data updated with value: {value}")
+    return jsonify({"status": "success"}), 200
+
+@app.route('/get_flags', methods=['GET'])
+def get_flags():
+    config_dir = os.path.join(os.getcwd(), 'config')
+    wea_flag_path = os.path.join(config_dir, 'wea_flag.dat')
+    dust_flag_path = os.path.join(config_dir, 'dust_flag.dat')
+
+    try:
+        with open(wea_flag_path, 'r') as file:
+            wea_flag = file.read().strip()
+    except Exception as e:
+        logger.error(f"Error reading wea_flag.dat: {e}")
+        wea_flag = "Error"
+
+    try:
+        with open(dust_flag_path, 'r') as file:
+            dust_flag = file.read().strip()
+    except Exception as e:
+        logger.error(f"Error reading dust_flag.dat: {e}")
+        dust_flag = "Error"
+
+    return jsonify({"wea_flag": wea_flag, "dust_flag": dust_flag}), 200
+
+@app.route('/test_connection', methods=['GET'])
+def test_connection():
+    return jsonify({'status': 'success'}), 200
+
 if __name__ == "__main__":
     app.run(host='0.0.0.0', port=5000)

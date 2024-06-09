@@ -14,3 +14,8 @@ client.zip
 crual_grouptask.zip
 client/UIPackage/__pycache__/*.pyc
 client/UIPackage/__pycache__/*.pyc
+server/log/dust_log.dat
+server/2024-06-09 03:40:18,603 ERROR __main__ F.txt
+server/__pycache__/crontab.cpython-311.pyc
+server/config/dust_flag.dat
+server/config/wea_flag.dat
