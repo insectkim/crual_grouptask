@@ -5,21 +5,27 @@ import platform
 
 class ServerConnection:
     def __init__(self):
-        # Tkinter의 기본 루트 윈도우 생성
         if not tk._default_root:
             root = tk.Tk()
-            root.withdraw()  # 루트 윈도우 숨기기
+            root.withdraw()
         
-        self.server_ip = tk.StringVar(value="192.168.0.1")
+        self.server_ip = tk.StringVar(value="192.168.120.133")
+        self.server_ip_with_port = self.server_ip.get() + ":5000"
         self.is_connected = tk.BooleanVar(value=False)
 
+    def update_ip_with_port(self):
+        self.server_ip_with_port = self.server_ip.get() + ":5000"
+
     def send_request(self, endpoint, method='GET', data=None):
-        url = f"http://{self.server_ip.get()}/{endpoint}"
+        self.update_ip_with_port()
+        url = f"http://{self.server_ip_with_port}/{endpoint}"
+        print(f"Request URL: {url}")  # URL 확인용 출력 추가
+
         try:
-            if method == 'POST':
-                response = requests.post(url, json=data)
+            if method.upper() == 'POST':
+                response = requests.post(url, json=data, timeout=10)  # 타임아웃 설정 추가
             else:
-                response = requests.get(url)
+                response = requests.get(url, timeout=10)  # 타임아웃 설정 추가
             response.raise_for_status()
             return response.json()
         except requests.RequestException as e:
@@ -27,7 +33,6 @@ class ServerConnection:
             return None
 
     def check_server_connection(self, ip):
-        # OS 확인 및 적절한 ping 명령 옵션 선택
         ping_option = '-n' if platform.system().lower() == 'windows' else '-c'
         try:
             response = subprocess.run(['ping', ping_option, '1', ip], stdout=subprocess.PIPE, stderr=subprocess.PIPE)

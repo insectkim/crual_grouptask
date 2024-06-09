@@ -30,7 +30,7 @@ def show_main_ui():
     initialize_status_tab(tab1, server_connection)
     initialize_alarm_tab(tab2, server_connection)
     initialize_test_tab(tab3, server_connection)
-    initialize_config_tab(tab4, server_connection)
+    initialize_config_tab(tab4)
 
     root.mainloop()
 

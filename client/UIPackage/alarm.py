@@ -14,7 +14,7 @@ class AlarmManager:
         return []
 
     def save_crontab_list(self, crontab_data):
-        return self.server_connection.send_request('update_crontab', method='POST', data=crontab_data)
+        return self.server_connection.send_request('update_crontab', method='POST', data={'crontab': crontab_data})
 
     def add_entry(self, entries_frame, job=None):
         frame = ttk.Frame(entries_frame)
@@ -101,10 +101,20 @@ class AlarmManager:
     def save_crontab(self, command):
         crontab_data = self.gather_crontab_data(command)
         response = self.save_crontab_list(crontab_data)
-        if response['status'] == 'success':
+        if response and response.get('status') == 'success':
             print("Crontab successfully updated.")
         else:
             print("Failed to update crontab.")
+
+    def fetch_and_display_crontab(self, entries_frame):
+        crontab_list = self.fetch_crontab_list()
+        if crontab_list:
+            first_cron_job = crontab_list[0]
+            command = first_cron_job.split(' ', 5)[-1]
+            for cron_job in crontab_list:
+                self.add_entry(entries_frame, cron_job)
+            save_button = entries_frame.master.master.winfo_children()[1]
+            save_button.configure(command=lambda: self.save_crontab(command))
 
 def initialize_alarm_tab(tab, server_connection):
     review_frame = ttk.LabelFrame(tab, text="알람 리스트")
@@ -121,16 +131,5 @@ def initialize_alarm_tab(tab, server_connection):
     save_button = ttk.Button(tab, text="저장", command=lambda: alarm_manager.save_crontab("명령어 없음"))
     save_button.grid(column=0, row=1, padx=10, pady=10)
 
-    tab.master.master.after(1000, lambda: fetch_alarms(tab, alarm_manager))
-
-def fetch_alarms(tab, alarm_manager):
-    entries_frame = tab.winfo_children()[0].winfo_children()[0]
-
-    crontab_list = alarm_manager.fetch_crontab_list()
-    if crontab_list:
-        first_cron_job = crontab_list[0]
-        command = first_cron_job.split(' ', 5)[-1]
-        for cron_job in crontab_list:
-            alarm_manager.add_entry(entries_frame, cron_job)
-        save_button = tab.winfo_children()[1]
-        save_button.configure(command=lambda: alarm_manager.save_crontab(command))
+    refresh_button = ttk.Button(tab, text="새로고침", command=lambda: alarm_manager.fetch_and_display_crontab(entries_frame))
+    refresh_button.grid(column=0, row=2, padx=10, pady=10)
