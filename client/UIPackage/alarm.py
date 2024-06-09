@@ -14,6 +14,7 @@ class AlarmManager:
         return []
 
     def save_crontab_list(self, crontab_data):
+        print(f"Data to send: {crontab_data}")  # 전송할 데이터 확인용 출력 추가
         return self.server_connection.send_request('update_crontab', method='POST', data={'crontab': crontab_data})
 
     def add_entry(self, entries_frame, job=None):
@@ -54,17 +55,22 @@ class AlarmManager:
 
         if job:
             parts = job.split()
-            if len(parts) >= 5:
-                minute, hour, _day_of_month, _month, day_of_week = parts[:5]
+            if len(parts) >= 6:
+                minute, hour, _day_of_month, _month, day_of_week, command = parts[:6]
                 hour_entry.insert(0, hour)
                 minute_entry.insert(0, minute)
                 self.set_day_checkboxes(day_of_week, day_vars)
 
     def set_day_checkboxes(self, day_of_week_str, day_vars):
         days_map = {
-            '0': '일', '1': '월', '2': '화', '3': '수', '4': '목', '5': '금', '6': '토',
-            'sun': '일', 'mon': '월', 'tue': '화', 'wed': '수', 'thu': '목', 'fri': '금', 'sat': '토'
+            '0': '일', '1': '월', '2': '화', '3': '수', '4': '목', '5': '금', '6': '토'
         }
+
+        print(f"Setting day checkboxes for: {day_of_week_str}")  # 디버깅 출력 추가
+
+        # 모든 체크박스 초기화
+        for var in day_vars.values():
+            var.set(False)
 
         if day_of_week_str == '*':
             for var in day_vars.values():
@@ -72,8 +78,17 @@ class AlarmManager:
         else:
             days = day_of_week_str.split(',')
             for day in days:
+                day = day.strip()  # 공백 제거
                 if day in days_map:
+                    print(f"Setting checkbox for: {days_map[day]}")  # 디버깅 출력 추가
                     day_vars[days_map[day]].set(True)
+        
+        # UI 업데이트 강제 호출
+        for day in days_map.values():
+            day_vars[day].get()  # get 호출로 BooleanVar 업데이트 상태 확인
+        for var in day_vars.values():
+            var.get()
+        self.entries_list[0][0].update_idletasks()  # 첫 번째 frame을 사용하여 UI 강제 업데이트
 
     def remove_entry(self, frame):
         frame.pack_forget()
@@ -104,11 +119,15 @@ class AlarmManager:
         if response and response.get('status') == 'success':
             print("Crontab successfully updated.")
         else:
-            print("Failed to update crontab.")
+            print(f"Failed to update crontab: {response}")
 
     def fetch_and_display_crontab(self, entries_frame):
         crontab_list = self.fetch_crontab_list()
         if crontab_list:
+            # 기존 항목 제거
+            for child in entries_frame.winfo_children():
+                child.destroy()
+
             first_cron_job = crontab_list[0]
             command = first_cron_job.split(' ', 5)[-1]
             for cron_job in crontab_list:

@@ -20,6 +20,7 @@ class ServerConnection:
         self.update_ip_with_port()
         url = f"http://{self.server_ip_with_port}/{endpoint}"
         print(f"Request URL: {url}")  # URL 확인용 출력 추가
+        print(f"Request Data: {data}")  # 데이터 확인용 출력 추가
 
         try:
             if method.upper() == 'POST':
