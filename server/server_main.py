@@ -9,7 +9,7 @@ import crontab
 
 app = Flask(__name__)
 
-logging.basicConfig(level=logging.INFO, format='%(asctime)s %(levelname)s %(name)s %(message)s')
+logging.basicConfig(level=logging.INFO, format='%(asctime)s %(name)s %(message)s')
 logger = logging.getLogger(__name__)
 
 @app.route('/crontab_list', methods=['GET'])
@@ -70,6 +70,40 @@ def update_weather():
     subprocess.run(command, shell=True, check=True)
     logger.info(f"Weather updated with value: {value}")
     return jsonify({"status": "success"}), 200
+
+@app.route('/check_dust_data', methods=['GET'])
+def check_dust_data():
+    value = request.args.get('value', 0, type=int)
+    config_dir = os.path.join(os.getcwd(), 'config')
+    if not os.path.exists(config_dir):
+        os.makedirs(config_dir)
+    config_path = os.path.join(config_dir, 'dust_flag.dat')
+    command = f"echo {value} > {config_path}"
+    subprocess.run(command, shell=True, check=True)
+    logger.info(f"Dust data updated with value: {value}")
+    return jsonify({"status": "success"}), 200
+
+@app.route('/get_flags', methods=['GET'])
+def get_flags():
+    config_dir = os.path.join(os.getcwd(), 'config')
+    wea_flag_path = os.path.join(config_dir, 'wea_flag.dat')
+    dust_flag_path = os.path.join(config_dir, 'dust_flag.dat')
+
+    try:
+        with open(wea_flag_path, 'r') as file:
+            wea_flag = file.read().strip()
+    except Exception as e:
+        logger.error(f"Error reading wea_flag.dat: {e}")
+        wea_flag = "Error"
+
+    try:
+        with open(dust_flag_path, 'r') as file:
+            dust_flag = file.read().strip()
+    except Exception as e:
+        logger.error(f"Error reading dust_flag.dat: {e}")
+        dust_flag = "Error"
+
+    return jsonify({"wea_flag": wea_flag, "dust_flag": dust_flag}), 200
 
 @app.route('/test_connection', methods=['GET'])
 def test_connection():

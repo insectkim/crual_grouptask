@@ -1,7 +1,7 @@
 import requests
-import subprocess
 import tkinter as tk
 import platform
+import subprocess
 
 class ServerConnection:
     def __init__(self):
@@ -9,7 +9,7 @@ class ServerConnection:
             root = tk.Tk()
             root.withdraw()
         
-        self.server_ip = tk.StringVar(value="192.168.120.133")
+        self.server_ip = tk.StringVar(value="192.168.120.113")
         self.server_ip_with_port = self.server_ip.get() + ":5000"
         self.is_connected = tk.BooleanVar(value=False)
 
@@ -47,3 +47,11 @@ class ServerConnection:
             print(f"Error checking server connection: {e}")
             self.is_connected.set(False)
             return False
+
+def get_flags():
+    server_connection = ServerConnection()
+    response = server_connection.send_request('get_flags')
+    if response:
+        return response.get('wea_flag'), response.get('dust_flag')
+    else:
+        return None, None
