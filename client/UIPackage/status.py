@@ -15,7 +15,5 @@ def initialize_status_tab(tab, server_connection):
     update_button.grid(column=2, row=0, padx=5, pady=5)
 
 def update_server_status(status_lamp, server_connection):
-    if server_connection.check_server_connection(server_connection.server_ip.get()):
-        status_lamp.config(bg="green")
-    else:
-        status_lamp.config(bg="red")
+    result = server_connection.check_server_connection(server_connection.server_ip.get())
+    status_lamp.config(bg=result)

@@ -7,7 +7,7 @@ import sys
 # pigpio 핀 팩토리 설정
 factory = PiGPIOFactory()
 
-# 서보모터를 연결할 GPIO 핀 설정 (예: GPIO 17) 및 핀 팩토리 설정
+# 서보모터를 연결할 GPIO 핀 설정 (예: GPIO 12) 및 핀 팩토리 설정
 my_servo = Servo(12, pin_factory=factory)
 
 def signal_handler(sig, frame):

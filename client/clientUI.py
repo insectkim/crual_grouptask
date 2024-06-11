@@ -5,9 +5,16 @@ from UIPackage.alarm import initialize_alarm_tab
 from UIPackage.status import initialize_status_tab
 from UIPackage.config import initialize_config_tab
 from ConPackage.connect import ServerConnection
+import sys
 
 # 서버 연결 설정
 server_connection = ServerConnection()
+
+def on_close(root):
+    """메인 윈도우 닫을 때 호출될 함수"""
+    print("Closing application")
+    root.destroy()
+    sys.exit(0)  # 파이썬 스크립트 강제 종료
 
 # 메인 윈도우 생성 및 UI 구성
 def show_main_ui():
@@ -30,8 +37,9 @@ def show_main_ui():
     initialize_status_tab(tab1, server_connection)
     initialize_alarm_tab(tab2, server_connection)
     initialize_test_tab(tab3, server_connection)
-    initialize_config_tab(tab4)
+    initialize_config_tab(tab4, server_connection)
 
+    root.protocol("WM_DELETE_WINDOW", lambda: on_close(root))  # 종료 이벤트 처리
     root.mainloop()
 
 # 초기 서버 연결 설정 UI
@@ -60,6 +68,7 @@ def show_initial_ui():
     connect_button = tk.Button(initial_root, text="접속", command=attempt_connection)
     connect_button.pack(padx=10, pady=10)
 
+    initial_root.protocol("WM_DELETE_WINDOW", lambda: on_close(initial_root))  # 종료 이벤트 처리
     initial_root.mainloop()
 
 # 초기 UI 실행
