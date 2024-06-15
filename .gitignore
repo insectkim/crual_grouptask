@@ -19,3 +19,4 @@ server/2024-06-09 03:40:18,603 ERROR __main__ F.txt
 server/__pycache__/crontab.cpython-311.pyc
 server/config/dust_flag.dat
 server/config/wea_flag.dat
+server/config/window_stat.dat

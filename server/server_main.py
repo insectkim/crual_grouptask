@@ -2,10 +2,12 @@ from flask import Flask, request, jsonify
 import os
 import subprocess
 import sys
+import requests
 import logging
-
-sys.path.append(os.path.dirname(__file__))
 import crontab
+sys.path.append(os.path.dirname(__file__))
+current_dir = os.path.dirname(os.path.realpath(__file__))
+
 
 app = Flask(__name__)
 
@@ -81,33 +83,57 @@ def check_dust_data():
     command = f"echo {value} > {config_path}"
     subprocess.run(command, shell=True, check=True)
     logger.info(f"Dust data updated with value: {value}")
+        
+    try:
+        response = requests.get('http://localhost:5000/close_window')
+        if response.status_code == 200:
+            logger.info("Window closed successfully after dust data update.")
+            return jsonify({"status": "success", "window": "closed"}), 200
+        else:
+            logger.error(f"Failed to close window: {response.status_code}")
+            return jsonify({"status": "failed", "error": f"Failed to close window: {response.status_code}"}), 500
+    except requests.RequestException as e:
+        logger.error(f"Error closing window after dust data update: {e}")
+        return jsonify({"status": "failed", "error": str(e)}), 500
     return jsonify({"status": "success"}), 200
 
-@app.route('/get_flags', methods=['GET'])
+@app.route('/get_flags')
 def get_flags():
-    config_dir = os.path.join(os.getcwd(), 'config')
-    wea_flag_path = os.path.join(config_dir, 'wea_flag.dat')
-    dust_flag_path = os.path.join(config_dir, 'dust_flag.dat')
-
     try:
-        with open(wea_flag_path, 'r') as file:
-            wea_flag = file.read().strip()
+        config_path = os.path.join(current_dir, 'config')
+        with open(os.path.join(config_path, 'wea_flag.dat'), 'r') as file:
+            wea_flag = int(file.read().strip())
+        with open(os.path.join(config_path, 'dust_flag.dat'), 'r') as file:
+            dust_flag = int(file.read().strip())
+        with open(os.path.join(config_path, 'window_stat.dat'), 'r') as file:
+            window_state = file.read().strip()
+        return jsonify({
+            'wea_flag': wea_flag,
+            'dust_flag': dust_flag,
+            'window_state': window_state
+        }), 200
     except Exception as e:
-        logger.error(f"Error reading wea_flag.dat: {e}")
-        wea_flag = "Error"
-
-    try:
-        with open(dust_flag_path, 'r') as file:
-            dust_flag = file.read().strip()
-    except Exception as e:
-        logger.error(f"Error reading dust_flag.dat: {e}")
-        dust_flag = "Error"
-
-    return jsonify({"wea_flag": wea_flag, "dust_flag": dust_flag}), 200
+        return jsonify({'error': str(e)}), 500
 
 @app.route('/test_connection', methods=['GET'])
 def test_connection():
     return jsonify({'status': 'success'}), 200
+
+@app.route('/open_window')
+def open_window():
+    try:
+        subprocess.run(['python', os.path.join(current_dir, 'open_window.py'), 'test'], check=True)
+        return '', 200
+    except subprocess.CalledProcessError as e:
+        return f"Failed to open window: {e}", 500
+    
+@app.route('/close_window')
+def close_window():
+    try:
+        subprocess.run(['python', os.path.join(current_dir, 'close_window.py'), 'test'], check=True)
+        return '', 200
+    except subprocess.CalledProcessError as e:
+        return f"Failed to close window: {e}", 500 
 
 if __name__ == "__main__":
     app.run(host='0.0.0.0', port=5000)
